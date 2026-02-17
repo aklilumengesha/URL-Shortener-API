@@ -35,6 +35,18 @@ export default async function urlRoutes(fastify, options) {
             error: 'This alias is reserved and cannot be used.',
           });
         }
+        
+        // Check if custom alias already exists
+        const existingAlias = await fastify.mongo.db
+          .collection('urls')
+          .findOne({ shortCode: customAlias });
+        
+        if (existingAlias) {
+          return reply.code(409).send({
+            error: 'This alias is already taken. Please choose another.',
+          });
+        }
+        
         shortCode = customAlias;
       } else {
         // Generate short code using nanoid
