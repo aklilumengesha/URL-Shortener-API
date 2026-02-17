@@ -11,7 +11,23 @@ import urlRoutes from './routes/urls.js';
 import analyticsRoutes from './routes/analytics.js';
 
 export async function build(opts = {}) {
-  const app = Fastify(opts);
+  const app = Fastify({
+    logger: {
+      level: process.env.LOG_LEVEL || 'info',
+      transport:
+        process.env.NODE_ENV === 'development'
+          ? {
+              target: 'pino-pretty',
+              options: {
+                colorize: true,
+                translateTime: 'HH:MM:ss Z',
+                ignore: 'pid,hostname',
+              },
+            }
+          : undefined,
+    },
+    ...opts,
+  });
 
   // Register CORS
   await app.register(cors, {
