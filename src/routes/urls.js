@@ -103,7 +103,31 @@ export default async function urlRoutes(fastify, options) {
         }
       }
 
-      // TODO: Fallback to MongoDB if not in cache
+      // Fallback to MongoDB if not in cache
+      const urlDoc = await fastify.mongo.db
+        .collection('urls')
+        .findOne({ shortCode: code });
+
+      if (urlDoc) {
+        // Cache the result for future requests
+        if (fastify.redis) {
+          await fastify.redis.set(
+            `url:${code}`,
+            JSON.stringify({ originalUrl: urlDoc.originalUrl, clicks: urlDoc.clicks }),
+            'EX',
+            86400
+          );
+        }
+
+        return reply.send({
+          shortCode: urlDoc.shortCode,
+          originalUrl: urlDoc.originalUrl,
+          clicks: urlDoc.clicks,
+          createdAt: urlDoc.createdAt.toISOString(),
+          source: 'database',
+        });
+      }
+
       // TODO: Handle not found error
 
       return reply.send({
