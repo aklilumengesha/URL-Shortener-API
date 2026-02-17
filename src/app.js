@@ -4,6 +4,7 @@ import rateLimit from '@fastify/rate-limit';
 
 // Plugins
 import mongodbPlugin from './plugins/mongodb.js';
+import redisPlugin from './plugins/redis.js';
 
 export async function build(opts = {}) {
   const app = Fastify(opts);
@@ -19,8 +20,9 @@ export async function build(opts = {}) {
     timeWindow: '15 minutes',
   });
 
-  // Register MongoDB
+  // Register Database Plugins
   await app.register(mongodbPlugin);
+  await app.register(redisPlugin);
 
   // Health check endpoint
   app.get('/health', async (request, reply) => {
