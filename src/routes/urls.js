@@ -53,7 +53,16 @@ export default async function urlRoutes(fastify, options) {
         shortCode = nanoid(7);
       }
 
-      // TODO: Save to database
+      // Save to MongoDB
+      const urlDocument = {
+        shortCode,
+        originalUrl: url,
+        createdAt: new Date(),
+        clicks: 0,
+      };
+
+      await fastify.mongo.db.collection('urls').insertOne(urlDocument);
+
       // TODO: Cache in Redis
 
       const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
