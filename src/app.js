@@ -39,5 +39,44 @@ export async function build(opts = {}) {
     };
   });
 
+  // Redirect route - must be last to avoid conflicts
+  app.get('/:code', async (request, reply) => {
+    const { code } = request.params;
+
+    // Check Redis cache first
+    if (app.redis) {
+      const cached = await app.redis.get(`url:${code}`);
+      if (cached) {
+        const urlData = JSON.parse(cached);
+        return reply.redirect(301, urlData.originalUrl);
+      }
+    }
+
+    // Fallback to MongoDB
+    const urlDoc = await app.mongo.db
+      .collection('urls')
+      .findOne({ shortCode: code });
+
+    if (urlDoc) {
+      // Cache for future requests
+      if (app.redis) {
+        await app.redis.set(
+          `url:${code}`,
+          JSON.stringify({ originalUrl: urlDoc.originalUrl, clicks: urlDoc.clicks }),
+          'EX',
+          86400
+        );
+      }
+
+      return reply.redirect(301, urlDoc.originalUrl);
+    }
+
+    // Not found
+    return reply.code(404).send({
+      error: 'Short URL not found',
+      code,
+    });
+  });
+
   return app;
 }
