@@ -1,0 +1,17 @@
+{
+  "name": "url-shortener",
+  "version": "1.0.0",
+  "description": "Fast URL shortener built with Fastify",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "fastify",
+    "url-shortener",
+    "nodejs"
+  ],
+  "author": "",
+  "license": "MIT"
+}
