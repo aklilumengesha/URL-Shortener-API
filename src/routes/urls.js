@@ -63,7 +63,15 @@ export default async function urlRoutes(fastify, options) {
 
       await fastify.mongo.db.collection('urls').insertOne(urlDocument);
 
-      // TODO: Cache in Redis
+      // Cache in Redis for fast lookups
+      if (fastify.redis) {
+        await fastify.redis.set(
+          `url:${shortCode}`,
+          JSON.stringify({ originalUrl: url, clicks: 0 }),
+          'EX',
+          86400 // 24 hours TTL
+        );
+      }
 
       const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
       
