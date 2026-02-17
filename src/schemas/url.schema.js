@@ -19,4 +19,15 @@ export const createUrlSchema = {
       },
     },
   },
+  response: {
+    201: {
+      type: 'object',
+      properties: {
+        shortCode: { type: 'string' },
+        shortUrl: { type: 'string' },
+        originalUrl: { type: 'string' },
+        createdAt: { type: 'string' },
+      },
+    },
+  },
 };
