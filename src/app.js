@@ -49,11 +49,23 @@ export async function build(opts = {}) {
       if (cached) {
         const urlData = JSON.parse(cached);
         
-        // Increment click counter in MongoDB (async, don't wait)
+        // Increment click counter and log click history (async, don't wait)
         app.mongo.db
           .collection('urls')
           .updateOne({ shortCode: code }, { $inc: { clicks: 1 } })
           .catch(err => app.log.error('Failed to increment clicks:', err));
+        
+        // Log click event
+        app.mongo.db
+          .collection('clicks')
+          .insertOne({
+            shortCode: code,
+            timestamp: new Date(),
+            userAgent: request.headers['user-agent'],
+            referer: request.headers['referer'] || null,
+            ip: request.ip,
+          })
+          .catch(err => app.log.error('Failed to log click:', err));
         
         return reply.redirect(301, urlData.originalUrl);
       }
@@ -69,6 +81,17 @@ export async function build(opts = {}) {
       await app.mongo.db
         .collection('urls')
         .updateOne({ shortCode: code }, { $inc: { clicks: 1 } });
+
+      // Log click event
+      await app.mongo.db
+        .collection('clicks')
+        .insertOne({
+          shortCode: code,
+          timestamp: new Date(),
+          userAgent: request.headers['user-agent'],
+          referer: request.headers['referer'] || null,
+          ip: request.ip,
+        });
 
       // Cache for future requests
       if (app.redis) {
