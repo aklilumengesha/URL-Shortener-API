@@ -2,6 +2,41 @@ import { nanoid } from 'nanoid';
 import { createUrlSchema } from '../schemas/url.schema.js';
 
 export default async function urlRoutes(fastify, options) {
+  // GET /api/urls - List all URLs with pagination
+  fastify.get('/', {
+    handler: async (request, reply) => {
+      const { page = 1, limit = 10 } = request.query;
+      const skip = (page - 1) * limit;
+
+      const urls = await fastify.mongo.db
+        .collection('urls')
+        .find({})
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit))
+        .toArray();
+
+      const total = await fastify.mongo.db
+        .collection('urls')
+        .countDocuments({});
+
+      return reply.send({
+        urls: urls.map(url => ({
+          shortCode: url.shortCode,
+          originalUrl: url.originalUrl,
+          clicks: url.clicks,
+          createdAt: url.createdAt.toISOString(),
+        })),
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          pages: Math.ceil(total / limit),
+        },
+      });
+    },
+  });
+
   // POST /api/urls - Create shortened URL
   fastify.post('/', {
     schema: createUrlSchema,
