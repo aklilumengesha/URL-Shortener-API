@@ -24,8 +24,22 @@ export default async function urlRoutes(fastify, options) {
         });
       }
 
-      // Generate short code using nanoid
-      const shortCode = nanoid(7);
+      // Validate custom alias if provided
+      let shortCode;
+      if (customAlias) {
+        // Check if alias matches pattern (already validated by schema)
+        // Check for reserved words
+        const reservedWords = ['api', 'health', 'admin', 'analytics'];
+        if (reservedWords.includes(customAlias.toLowerCase())) {
+          return reply.code(400).send({
+            error: 'This alias is reserved and cannot be used.',
+          });
+        }
+        shortCode = customAlias;
+      } else {
+        // Generate short code using nanoid
+        shortCode = nanoid(7);
+      }
 
       // TODO: Save to database
       // TODO: Cache in Redis
