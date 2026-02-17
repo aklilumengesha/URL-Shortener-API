@@ -28,6 +28,35 @@ export async function build(opts = {}) {
   await app.register(mongodbPlugin);
   await app.register(redisPlugin);
 
+  // Error handler
+  app.setErrorHandler((error, request, reply) => {
+    app.log.error(error);
+
+    // Validation errors
+    if (error.validation) {
+      return reply.code(400).send({
+        error: 'Validation Error',
+        message: error.message,
+        details: error.validation,
+      });
+    }
+
+    // Rate limit errors
+    if (error.statusCode === 429) {
+      return reply.code(429).send({
+        error: 'Too Many Requests',
+        message: 'Rate limit exceeded. Please try again later.',
+      });
+    }
+
+    // Default error response
+    const statusCode = error.statusCode || 500;
+    return reply.code(statusCode).send({
+      error: error.name || 'Internal Server Error',
+      message: error.message || 'An unexpected error occurred',
+    });
+  });
+
   // Register Routes
   await app.register(urlRoutes, { prefix: '/api/urls' });
   await app.register(analyticsRoutes, { prefix: '/api/analytics' });
