@@ -6,6 +6,9 @@ import rateLimit from '@fastify/rate-limit';
 import mongodbPlugin from './plugins/mongodb.js';
 import redisPlugin from './plugins/redis.js';
 
+// Routes
+import urlRoutes from './routes/urls.js';
+
 export async function build(opts = {}) {
   const app = Fastify(opts);
 
@@ -23,6 +26,9 @@ export async function build(opts = {}) {
   // Register Database Plugins
   await app.register(mongodbPlugin);
   await app.register(redisPlugin);
+
+  // Register Routes
+  await app.register(urlRoutes, { prefix: '/api/urls' });
 
   // Health check endpoint
   app.get('/health', async (request, reply) => {
