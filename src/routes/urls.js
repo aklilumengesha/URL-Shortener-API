@@ -8,7 +8,22 @@ export default async function urlRoutes(fastify, options) {
     handler: async (request, reply) => {
       const { url, customAlias } = request.body;
 
-      // TODO: Add validation logic
+      // Validate URL format
+      try {
+        const urlObj = new URL(url);
+        
+        // Only allow http and https protocols
+        if (!['http:', 'https:'].includes(urlObj.protocol)) {
+          return reply.code(400).send({
+            error: 'Invalid URL protocol. Only HTTP and HTTPS are allowed.',
+          });
+        }
+      } catch (error) {
+        return reply.code(400).send({
+          error: 'Invalid URL format.',
+        });
+      }
+
       // TODO: Generate short code
       // TODO: Save to database
       // TODO: Cache in Redis
