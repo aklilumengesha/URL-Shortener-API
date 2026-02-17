@@ -45,6 +45,22 @@ export default async function analyticsRoutes(fastify, options) {
         .collection('clicks')
         .countDocuments({ shortCode: code, timestamp: { $gte: last30d } });
 
+      // Aggregate browser/device data from user agents
+      const browserStats = await fastify.mongo.db
+        .collection('clicks')
+        .aggregate([
+          { $match: { shortCode: code } },
+          {
+            $group: {
+              _id: '$userAgent',
+              count: { $sum: 1 },
+            },
+          },
+          { $sort: { count: -1 } },
+          { $limit: 10 },
+        ])
+        .toArray();
+
       return reply.send({
         shortCode: code,
         originalUrl: urlDoc.originalUrl,
@@ -55,6 +71,10 @@ export default async function analyticsRoutes(fastify, options) {
           last7d: clicksLast7d,
           last30d: clicksLast30d,
         },
+        topBrowsers: browserStats.map(stat => ({
+          userAgent: stat._id,
+          count: stat.count,
+        })),
         recentClicks: clickHistory.map(click => ({
           timestamp: click.timestamp.toISOString(),
           userAgent: click.userAgent,
