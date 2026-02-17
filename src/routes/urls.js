@@ -89,7 +89,20 @@ export default async function urlRoutes(fastify, options) {
     handler: async (request, reply) => {
       const { code } = request.params;
 
-      // TODO: Check Redis cache first
+      // Check Redis cache first
+      if (fastify.redis) {
+        const cached = await fastify.redis.get(`url:${code}`);
+        if (cached) {
+          const urlData = JSON.parse(cached);
+          return reply.send({
+            shortCode: code,
+            originalUrl: urlData.originalUrl,
+            clicks: urlData.clicks,
+            source: 'cache',
+          });
+        }
+      }
+
       // TODO: Fallback to MongoDB if not in cache
       // TODO: Handle not found error
 
