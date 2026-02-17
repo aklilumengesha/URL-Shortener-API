@@ -27,11 +27,34 @@ export default async function analyticsRoutes(fastify, options) {
         .limit(100)
         .toArray();
 
+      // Calculate statistics
+      const now = new Date();
+      const last24h = new Date(now - 24 * 60 * 60 * 1000);
+      const last7d = new Date(now - 7 * 24 * 60 * 60 * 1000);
+      const last30d = new Date(now - 30 * 24 * 60 * 60 * 1000);
+
+      const clicksLast24h = await fastify.mongo.db
+        .collection('clicks')
+        .countDocuments({ shortCode: code, timestamp: { $gte: last24h } });
+
+      const clicksLast7d = await fastify.mongo.db
+        .collection('clicks')
+        .countDocuments({ shortCode: code, timestamp: { $gte: last7d } });
+
+      const clicksLast30d = await fastify.mongo.db
+        .collection('clicks')
+        .countDocuments({ shortCode: code, timestamp: { $gte: last30d } });
+
       return reply.send({
         shortCode: code,
         originalUrl: urlDoc.originalUrl,
         createdAt: urlDoc.createdAt.toISOString(),
         totalClicks,
+        statistics: {
+          last24h: clicksLast24h,
+          last7d: clicksLast7d,
+          last30d: clicksLast30d,
+        },
         recentClicks: clickHistory.map(click => ({
           timestamp: click.timestamp.toISOString(),
           userAgent: click.userAgent,
