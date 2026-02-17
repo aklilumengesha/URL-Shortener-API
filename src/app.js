@@ -2,6 +2,9 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 
+// Plugins
+import mongodbPlugin from './plugins/mongodb.js';
+
 export async function build(opts = {}) {
   const app = Fastify(opts);
 
@@ -15,6 +18,9 @@ export async function build(opts = {}) {
     max: 100,
     timeWindow: '15 minutes',
   });
+
+  // Register MongoDB
+  await app.register(mongodbPlugin);
 
   // Health check endpoint
   app.get('/health', async (request, reply) => {
