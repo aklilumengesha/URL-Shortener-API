@@ -128,13 +128,10 @@ export default async function urlRoutes(fastify, options) {
         });
       }
 
-      // TODO: Handle not found error
-
-      return reply.send({
-        shortCode: code,
-        originalUrl: 'https://example.com',
-        clicks: 0,
-        createdAt: new Date().toISOString(),
+      // URL not found
+      return reply.code(404).send({
+        error: 'Short URL not found',
+        code,
       });
     },
   });
