@@ -24,13 +24,17 @@ export default async function urlRoutes(fastify, options) {
         });
       }
 
-      // TODO: Generate short code
+      // Generate short code using nanoid
+      const shortCode = nanoid(7);
+
       // TODO: Save to database
       // TODO: Cache in Redis
 
+      const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+      
       return reply.code(201).send({
-        shortCode: 'temp123',
-        shortUrl: `${process.env.BASE_URL || 'http://localhost:3000'}/temp123`,
+        shortCode,
+        shortUrl: `${baseUrl}/${shortCode}`,
         originalUrl: url,
         createdAt: new Date().toISOString(),
       });
