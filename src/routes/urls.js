@@ -170,4 +170,33 @@ export default async function urlRoutes(fastify, options) {
       });
     },
   });
+
+  // DELETE /api/urls/:code - Delete a shortened URL
+  fastify.delete('/:code', {
+    handler: async (request, reply) => {
+      const { code } = request.params;
+
+      // Delete from MongoDB
+      const result = await fastify.mongo.db
+        .collection('urls')
+        .deleteOne({ shortCode: code });
+
+      if (result.deletedCount === 0) {
+        return reply.code(404).send({
+          error: 'Short URL not found',
+          code,
+        });
+      }
+
+      // Delete from Redis cache
+      if (fastify.redis) {
+        await fastify.redis.del(`url:${code}`);
+      }
+
+      return reply.send({
+        message: 'URL deleted successfully',
+        code,
+      });
+    },
+  });
 }
