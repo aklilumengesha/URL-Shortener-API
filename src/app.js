@@ -48,6 +48,13 @@ export async function build(opts = {}) {
       const cached = await app.redis.get(`url:${code}`);
       if (cached) {
         const urlData = JSON.parse(cached);
+        
+        // Increment click counter in MongoDB (async, don't wait)
+        app.mongo.db
+          .collection('urls')
+          .updateOne({ shortCode: code }, { $inc: { clicks: 1 } })
+          .catch(err => app.log.error('Failed to increment clicks:', err));
+        
         return reply.redirect(301, urlData.originalUrl);
       }
     }
@@ -58,11 +65,16 @@ export async function build(opts = {}) {
       .findOne({ shortCode: code });
 
     if (urlDoc) {
+      // Increment click counter
+      await app.mongo.db
+        .collection('urls')
+        .updateOne({ shortCode: code }, { $inc: { clicks: 1 } });
+
       // Cache for future requests
       if (app.redis) {
         await app.redis.set(
           `url:${code}`,
-          JSON.stringify({ originalUrl: urlDoc.originalUrl, clicks: urlDoc.clicks }),
+          JSON.stringify({ originalUrl: urlDoc.originalUrl, clicks: urlDoc.clicks + 1 }),
           'EX',
           86400
         );
