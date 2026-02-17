@@ -20,6 +20,7 @@
     "@fastify/rate-limit": "^10.1.1",
     "@fastify/mongodb": "^9.0.0",
     "@fastify/redis": "^7.0.1",
-    "dotenv": "^16.4.7"
+    "dotenv": "^16.4.7",
+    "nanoid": "^5.0.9"
   }
 }
