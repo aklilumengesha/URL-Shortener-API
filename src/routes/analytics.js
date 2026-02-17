@@ -61,6 +61,23 @@ export default async function analyticsRoutes(fastify, options) {
         ])
         .toArray();
 
+      // Aggregate clicks by date (last 7 days)
+      const clicksByDate = await fastify.mongo.db
+        .collection('clicks')
+        .aggregate([
+          { $match: { shortCode: code, timestamp: { $gte: last7d } } },
+          {
+            $group: {
+              _id: {
+                $dateToString: { format: '%Y-%m-%d', date: '$timestamp' },
+              },
+              count: { $sum: 1 },
+            },
+          },
+          { $sort: { _id: 1 } },
+        ])
+        .toArray();
+
       return reply.send({
         shortCode: code,
         originalUrl: urlDoc.originalUrl,
@@ -73,6 +90,10 @@ export default async function analyticsRoutes(fastify, options) {
         },
         topBrowsers: browserStats.map(stat => ({
           userAgent: stat._id,
+          count: stat.count,
+        })),
+        clicksByDate: clicksByDate.map(stat => ({
+          date: stat._id,
           count: stat.count,
         })),
         recentClicks: clickHistory.map(click => ({
