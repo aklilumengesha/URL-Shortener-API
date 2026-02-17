@@ -1,4 +1,42 @@
 export default async function analyticsRoutes(fastify, options) {
+  // GET /analytics - Get overall system analytics
+  fastify.get('/', {
+    handler: async (request, reply) => {
+      // Total URLs created
+      const totalUrls = await fastify.mongo.db
+        .collection('urls')
+        .countDocuments({});
+
+      // Total clicks across all URLs
+      const totalClicks = await fastify.mongo.db
+        .collection('clicks')
+        .countDocuments({});
+
+      // Average clicks per URL
+      const avgClicksPerUrl = totalUrls > 0 ? (totalClicks / totalUrls).toFixed(2) : 0;
+
+      // Most recent URLs
+      const recentUrls = await fastify.mongo.db
+        .collection('urls')
+        .find({})
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .toArray();
+
+      return reply.send({
+        totalUrls,
+        totalClicks,
+        avgClicksPerUrl: parseFloat(avgClicksPerUrl),
+        recentUrls: recentUrls.map(url => ({
+          shortCode: url.shortCode,
+          originalUrl: url.originalUrl,
+          clicks: url.clicks,
+          createdAt: url.createdAt.toISOString(),
+        })),
+      });
+    },
+  });
+
   // GET /analytics/:code - Get analytics for a specific short URL
   fastify.get('/:code', {
     handler: async (request, reply) => {
