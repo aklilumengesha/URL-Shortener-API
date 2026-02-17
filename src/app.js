@@ -8,6 +8,7 @@ import redisPlugin from './plugins/redis.js';
 
 // Routes
 import urlRoutes from './routes/urls.js';
+import analyticsRoutes from './routes/analytics.js';
 
 export async function build(opts = {}) {
   const app = Fastify(opts);
@@ -29,6 +30,7 @@ export async function build(opts = {}) {
 
   // Register Routes
   await app.register(urlRoutes, { prefix: '/api/urls' });
+  await app.register(analyticsRoutes, { prefix: '/api/analytics' });
 
   // Health check endpoint
   app.get('/health', async (request, reply) => {
