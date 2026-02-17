@@ -83,4 +83,22 @@ export default async function urlRoutes(fastify, options) {
       });
     },
   });
+
+  // GET /api/urls/:code - Get URL details by short code
+  fastify.get('/:code', {
+    handler: async (request, reply) => {
+      const { code } = request.params;
+
+      // TODO: Check Redis cache first
+      // TODO: Fallback to MongoDB if not in cache
+      // TODO: Handle not found error
+
+      return reply.send({
+        shortCode: code,
+        originalUrl: 'https://example.com',
+        clicks: 0,
+        createdAt: new Date().toISOString(),
+      });
+    },
+  });
 }
