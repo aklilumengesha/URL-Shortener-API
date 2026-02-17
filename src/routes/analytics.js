@@ -23,10 +23,24 @@ export default async function analyticsRoutes(fastify, options) {
         .limit(5)
         .toArray();
 
+      // Top URLs by clicks
+      const topUrls = await fastify.mongo.db
+        .collection('urls')
+        .find({})
+        .sort({ clicks: -1 })
+        .limit(10)
+        .toArray();
+
       return reply.send({
         totalUrls,
         totalClicks,
         avgClicksPerUrl: parseFloat(avgClicksPerUrl),
+        topUrls: topUrls.map(url => ({
+          shortCode: url.shortCode,
+          originalUrl: url.originalUrl,
+          clicks: url.clicks,
+          createdAt: url.createdAt.toISOString(),
+        })),
         recentUrls: recentUrls.map(url => ({
           shortCode: url.shortCode,
           originalUrl: url.originalUrl,
