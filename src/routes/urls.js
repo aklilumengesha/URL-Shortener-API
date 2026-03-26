@@ -112,7 +112,7 @@ export default async function urlRoutes(fastify, options) {
       
       return reply.code(201).send({
         shortCode,
-        shortUrl: `${baseUrl}/${shortCode}`,
+        shortUrl: `${baseUrl}/r/${shortCode}`,
         originalUrl: url,
         createdAt: new Date().toISOString(),
       });

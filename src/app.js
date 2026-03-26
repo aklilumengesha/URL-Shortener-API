@@ -1,6 +1,12 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
+import staticFiles from '@fastify/static';
+import { fileURLToPath } from 'url';
+import { join, dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Plugins
 import mongodbPlugin from './plugins/mongodb.js';
@@ -32,6 +38,12 @@ export async function build(opts = {}) {
   // Register CORS
   await app.register(cors, {
     origin: true,
+  });
+
+  // Serve static files from public directory
+  await app.register(staticFiles, {
+    root: join(__dirname, '../public'),
+    prefix: '/',
   });
 
   // Register Rate Limiting
@@ -86,8 +98,8 @@ export async function build(opts = {}) {
     };
   });
 
-  // Redirect route - must be last to avoid conflicts
-  app.get('/:code', async (request, reply) => {
+  // Redirect route - /r/:code to avoid conflicts with static files
+  app.get('/r/:code', async (request, reply) => {
     const { code } = request.params;
 
     // Check Redis cache first
