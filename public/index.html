@@ -401,5 +401,85 @@
   <!-- Toast Notification -->
   <div id="toast" class="toast hidden"></div>
 
+  <script>
+    // ── Utilities ──────────────────────────────────────────────
+    function showToast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = `toast ${type}`;
+      setTimeout(() => t.classList.add('hidden'), 3000);
+    }
+
+    function showPage(name) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(`page-${name}`).classList.add('active');
+      document.querySelector(`[onclick="showPage('${name}')"]`).classList.add('active');
+      if (name === 'urls') loadUrls();
+      if (name === 'analytics') loadAnalytics();
+    }
+
+    // ── Shorten URL ────────────────────────────────────────────
+    async function shortenUrl() {
+      const url = document.getElementById('urlInput').value.trim();
+      const alias = document.getElementById('aliasInput').value.trim();
+      const resultBox = document.getElementById('result-box');
+      const errorBox = document.getElementById('error-box');
+      const btn = document.getElementById('shortenBtn');
+
+      resultBox.classList.add('hidden');
+      errorBox.classList.add('hidden');
+
+      if (!url) {
+        errorBox.classList.remove('hidden');
+        document.getElementById('error-msg').textContent = 'Please enter a URL.';
+        return;
+      }
+
+      btn.textContent = 'Shortening...';
+      btn.disabled = true;
+
+      try {
+        const body = { url };
+        if (alias) body.customAlias = alias;
+
+        const res = await fetch('/api/urls', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          errorBox.classList.remove('hidden');
+          document.getElementById('error-msg').textContent = data.error || data.message || 'Something went wrong.';
+          return;
+        }
+
+        document.getElementById('result-url').textContent = data.shortUrl;
+        resultBox.classList.remove('hidden');
+        document.getElementById('urlInput').value = '';
+        document.getElementById('aliasInput').value = '';
+        showToast('URL shortened successfully!');
+      } catch (err) {
+        errorBox.classList.remove('hidden');
+        document.getElementById('error-msg').textContent = 'Network error. Is the server running?';
+      } finally {
+        btn.textContent = 'Shorten';
+        btn.disabled = false;
+      }
+    }
+
+    function copyUrl() {
+      const url = document.getElementById('result-url').textContent;
+      navigator.clipboard.writeText(url).then(() => showToast('Copied to clipboard!'));
+    }
+
+    // Allow Enter key to trigger shorten
+    document.getElementById('urlInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') shortenUrl();
+    });
+  </script>
 </body>
 </html>
