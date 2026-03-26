@@ -660,6 +660,52 @@
         detail.innerHTML = '<p class="empty-text">Failed to load URL analytics.</p>';
       }
     }
+
+    // ── Init ───────────────────────────────────────────────────
+    // Auto-focus URL input on load
+    window.addEventListener('load', () => {
+      document.getElementById('urlInput').focus();
+    });
+
+    // Paste from clipboard button support
+    document.getElementById('urlInput').addEventListener('paste', () => {
+      setTimeout(() => {
+        const val = document.getElementById('urlInput').value.trim();
+        if (val && !val.startsWith('http')) {
+          document.getElementById('urlInput').value = 'https://' + val;
+        }
+      }, 10);
+    });
+
+    // Auto-prefix https:// if missing on blur
+    document.getElementById('urlInput').addEventListener('blur', () => {
+      const val = document.getElementById('urlInput').value.trim();
+      if (val && !val.startsWith('http://') && !val.startsWith('https://')) {
+        document.getElementById('urlInput').value = 'https://' + val;
+      }
+    });
+
+    // Alias input: strip spaces and special chars live
+    document.getElementById('aliasInput').addEventListener('input', () => {
+      const el = document.getElementById('aliasInput');
+      el.value = el.value.replace(/[^a-zA-Z0-9_-]/g, '');
+    });
+
+    // Hide toast on click
+    document.getElementById('toast').addEventListener('click', () => {
+      document.getElementById('toast').classList.add('hidden');
+    });
+
+    // Show result short URL as clickable link
+    document.getElementById('result-url').addEventListener('click', () => {
+      const url = document.getElementById('result-url').textContent;
+      window.open(url, '_blank');
+    });
+
+    // Add pointer cursor to result URL
+    document.getElementById('result-url').style.cursor = 'pointer';
+    document.getElementById('result-url').title = 'Click to open';
+
   </script>
 </body>
 </html>
