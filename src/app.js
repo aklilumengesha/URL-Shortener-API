@@ -114,7 +114,7 @@ export async function build(opts = {}) {
           })
           .catch(err => app.log.error('Failed to log click:', err));
         
-        return reply.redirect(301, urlData.originalUrl);
+        return reply.redirect(urlData.originalUrl, 301);
       }
     }
 
@@ -150,7 +150,7 @@ export async function build(opts = {}) {
         );
       }
 
-      return reply.redirect(301, urlDoc.originalUrl);
+      return reply.redirect(urlDoc.originalUrl, 301);
     }
 
     // Not found
