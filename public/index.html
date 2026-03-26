@@ -3,9 +3,76 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>URL Shortener</title>
+  <title>SnapLink - URL Shortener</title>
 </head>
 <body>
-  <h1>URL Shortener - Coming Soon</h1>
+
+  <!-- Navigation -->
+  <nav id="navbar">
+    <div class="nav-brand">
+      <span class="brand-icon">⚡</span>
+      <span class="brand-name">SnapLink</span>
+    </div>
+    <div class="nav-links">
+      <button class="nav-btn active" onclick="showPage('home')">Home</button>
+      <button class="nav-btn" onclick="showPage('urls')">My URLs</button>
+      <button class="nav-btn" onclick="showPage('analytics')">Analytics</button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main id="main">
+
+    <!-- Page: Home -->
+    <section id="page-home" class="page active">
+      <div class="hero">
+        <h1 class="hero-title">Shorten Your Links</h1>
+        <p class="hero-subtitle">Fast, simple, and free URL shortener</p>
+
+        <div class="shorten-card">
+          <div class="input-group">
+            <input type="url" id="urlInput" placeholder="Paste your long URL here..." />
+            <input type="text" id="aliasInput" placeholder="Custom alias (optional)" />
+            <button id="shortenBtn" onclick="shortenUrl()">Shorten</button>
+          </div>
+          <div id="result-box" class="result-box hidden">
+            <span id="result-url"></span>
+            <button onclick="copyUrl()">Copy</button>
+          </div>
+          <div id="error-box" class="error-box hidden">
+            <span id="error-msg"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Page: My URLs -->
+    <section id="page-urls" class="page">
+      <div class="page-header">
+        <h2>My URLs</h2>
+        <button onclick="loadUrls()">↻ Refresh</button>
+      </div>
+      <div id="urls-container">
+        <p class="loading-text">Loading...</p>
+      </div>
+      <div id="pagination" class="pagination"></div>
+    </section>
+
+    <!-- Page: Analytics -->
+    <section id="page-analytics" class="page">
+      <div class="page-header">
+        <h2>Analytics</h2>
+        <button onclick="loadAnalytics()">↻ Refresh</button>
+      </div>
+      <div id="stats-overview" class="stats-grid"></div>
+      <div id="top-urls-container"></div>
+      <div id="url-detail-analytics" class="hidden"></div>
+    </section>
+
+  </main>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast hidden"></div>
+
 </body>
 </html>
