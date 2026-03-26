@@ -480,6 +480,86 @@
     document.getElementById('urlInput').addEventListener('keydown', e => {
       if (e.key === 'Enter') shortenUrl();
     });
+
+    // ── My URLs ────────────────────────────────────────────────
+    let currentPage = 1;
+
+    async function loadUrls(page = 1) {
+      currentPage = page;
+      const container = document.getElementById('urls-container');
+      container.innerHTML = '<p class="loading-text">Loading...</p>';
+
+      try {
+        const res = await fetch(`/api/urls?page=${page}&limit=10`);
+        const data = await res.json();
+
+        if (!data.urls || data.urls.length === 0) {
+          container.innerHTML = '<p class="empty-text">No URLs yet. Shorten one on the Home page!</p>';
+          document.getElementById('pagination').innerHTML = '';
+          return;
+        }
+
+        container.innerHTML = data.urls.map(url => `
+          <div class="url-card" id="card-${url.shortCode}">
+            <div class="url-info">
+              <div class="url-short" onclick="copyShortUrl('${url.shortCode}')">
+                /r/${url.shortCode}
+              </div>
+              <div class="url-original" title="${url.originalUrl}">${url.originalUrl}</div>
+            </div>
+            <div class="url-meta">
+              <span class="url-clicks">👆 ${url.clicks} clicks</span>
+              <span class="url-date">${formatDate(url.createdAt)}</span>
+              <button class="btn-delete" onclick="deleteUrl('${url.shortCode}')">Delete</button>
+            </div>
+          </div>
+        `).join('');
+
+        renderPagination(data.pagination);
+      } catch (err) {
+        container.innerHTML = '<p class="empty-text">Failed to load URLs.</p>';
+      }
+    }
+
+    async function deleteUrl(code) {
+      if (!confirm(`Delete /${code}?`)) return;
+
+      try {
+        const res = await fetch(`/api/urls/${code}`, { method: 'DELETE' });
+        if (res.ok) {
+          document.getElementById(`card-${code}`)?.remove();
+          showToast('URL deleted.');
+          // Reload if page is now empty
+          const remaining = document.querySelectorAll('.url-card').length;
+          if (remaining === 0) loadUrls(currentPage > 1 ? currentPage - 1 : 1);
+        } else {
+          showToast('Failed to delete.', 'error');
+        }
+      } catch {
+        showToast('Network error.', 'error');
+      }
+    }
+
+    function copyShortUrl(code) {
+      const url = `${window.location.origin}/r/${code}`;
+      navigator.clipboard.writeText(url).then(() => showToast('Copied!'));
+    }
+
+    function renderPagination(pagination) {
+      const el = document.getElementById('pagination');
+      if (pagination.pages <= 1) { el.innerHTML = ''; return; }
+
+      let html = `<button ${pagination.page <= 1 ? 'disabled' : ''} onclick="loadUrls(${pagination.page - 1})">← Prev</button>`;
+      for (let i = 1; i <= pagination.pages; i++) {
+        html += `<button class="${i === pagination.page ? 'active' : ''}" onclick="loadUrls(${i})">${i}</button>`;
+      }
+      html += `<button ${pagination.page >= pagination.pages ? 'disabled' : ''} onclick="loadUrls(${pagination.page + 1})">Next →</button>`;
+      el.innerHTML = html;
+    }
+
+    function formatDate(iso) {
+      return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
   </script>
 </body>
 </html>
