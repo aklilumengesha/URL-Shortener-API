@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: snaplink
+    runtime: node
+    region: oregon
+    plan: free
+    rootDir: .
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: warn
+      - key: PORT
+        value: 3000
+      - key: MONGODB_URI
+        sync: false
+      - key: BASE_URL
+        sync: false
